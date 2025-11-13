@@ -5,7 +5,9 @@ pipeline {
         APP_NAME = 'demo-app'
         DOCKER_IMAGE = "${APP_NAME}:${BUILD_NUMBER}"
     }
-    
+    tools {
+        nodejs 'Node-22'
+    }
     stages {
         stage('Build') {
             steps {
