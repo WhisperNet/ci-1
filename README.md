@@ -57,6 +57,14 @@ The demo application is a simple Express.js server that:
 
    - Docker Pipeline
    - Docker plugin
+   - NodeJS plugin
+     Go to Manage Jenkins > Global Tool Configuration.
+
+   Scroll down to NodeJS and click Add NodeJS.
+
+   Give it a Name (e.g., node-22) and choose a version to install automatically.
+
+Click Save.
 
 5. Create a new Pipeline job in Jenkins:
 
