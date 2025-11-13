@@ -50,8 +50,8 @@ pipeline {
                 script {
                     echo 'Deploying application with Docker Compose...'
                     sh '''
-                        docker-compose down || true
-                        docker-compose up -d
+                        docker compose down || true
+                        docker compose up -d
                     '''
                 }
             }
