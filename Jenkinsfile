@@ -52,7 +52,7 @@ pipeline {
             sh """
                 docker stop ${APP_NAME} || true
                 docker rm ${APP_NAME} || true
-                docker run -d --name ${APP_NAME} -p 3000:3000 --health-cmd='node -e \"require(\\\"http\\\").get(\\\"http://localhost:3000/health\\\", (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})\"' --health-interval=30s --health-timeout=3s --health-retries=3 --health-start-period=5s ${DOCKER_IMAGE}
+                docker run -d --name ${APP_NAME} -p 3000:3000 --health-cmd='node -e \"require(\\\"http\\\").get(\\\"http://127.0.0.1:3000/health\\\", (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})\"' --health-interval=30s --health-timeout=3s --health-retries=3 --health-start-period=5s ${DOCKER_IMAGE}
             """
         }
     }

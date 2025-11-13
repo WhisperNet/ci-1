@@ -1,9 +1,9 @@
 #!/bin/bash
 
-set -e
+set +e  # Don't exit on error, we'll handle it manually
 
 CONTAINER_NAME="demo-app"
-HEALTH_ENDPOINT="http://localhost:3000/health"
+HEALTH_ENDPOINT="http://127.0.0.1:3000/health"
 MAX_RETRIES=5
 RETRY_INTERVAL=2
 
@@ -17,19 +17,29 @@ fi
 
 echo "Container $CONTAINER_NAME is running."
 
-# Check health endpoint
-echo "Checking health endpoint: $HEALTH_ENDPOINT"
+# Check health endpoint - try multiple methods
+echo "Checking health endpoint..."
 
 for i in $(seq 1 $MAX_RETRIES); do
-    if curl -f -s "$HEALTH_ENDPOINT" > /dev/null 2>&1; then
+    # Method 1: Use docker exec to check from inside the container (most reliable)
+    if docker exec "$CONTAINER_NAME" node -e "require('http').get('http://127.0.0.1:3000/health', (r) => {let data=''; r.on('data', d=>data+=d); r.on('end', ()=>{console.log(data); process.exit(r.statusCode === 200 ? 0 : 1)})})" 2>/dev/null; then
         echo "Health check passed!"
-        curl -s "$HEALTH_ENDPOINT" | jq '.' || curl -s "$HEALTH_ENDPOINT"
+        docker exec "$CONTAINER_NAME" node -e "require('http').get('http://127.0.0.1:3000/health', (r) => {let data=''; r.on('data', d=>data+=d); r.on('end', ()=>{console.log(data)})})"
         exit 0
-    else
-        echo "Attempt $i/$MAX_RETRIES failed. Retrying in ${RETRY_INTERVAL}s..."
-        if [ $i -lt $MAX_RETRIES ]; then
-            sleep $RETRY_INTERVAL
+    fi
+    
+    # Method 2: Try curl from host (if available and accessible)
+    if command -v curl > /dev/null 2>&1; then
+        if curl -f -s "$HEALTH_ENDPOINT" > /dev/null 2>&1; then
+            echo "Health check passed!"
+            curl -s "$HEALTH_ENDPOINT" | jq '.' 2>/dev/null || curl -s "$HEALTH_ENDPOINT"
+            exit 0
         fi
+    fi
+    
+    echo "Attempt $i/$MAX_RETRIES failed. Retrying in ${RETRY_INTERVAL}s..."
+    if [ $i -lt $MAX_RETRIES ]; then
+        sleep $RETRY_INTERVAL
     fi
 done
 
